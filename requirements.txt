@@ -1,0 +1,6 @@
+google-generativeai
+python-dotenv
+yt-dlp
+python-telegram-bot
+aiogram
+flask

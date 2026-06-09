@@ -1,0 +1,4 @@
+.env
+pubg.db
+__pycache__/
+*.pyc
