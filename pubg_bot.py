@@ -22,7 +22,7 @@ if not TOKEN:
     print("[ERROR] Не найден переменный PUBG_BOT_TOKEN в .env. Завершаю работу.")
     exit(1)
 
-OWNER_IDS = ["1477103854"]
+OWNER_IDS = [x.strip() for x in os.getenv("OWNER_IDS", "1477103854").split(",") if x.strip()]
 CARD = "8888 0144 9062 6927"
 
 # UC Packages: (name, uc_amount, price_uzs)
@@ -35,28 +35,39 @@ PACKAGES = [
     ("8100 UC", 8100, 1400000),
 ]
 
+# Cheat Packages: (name, price_uzs)
+CHEAT_PACKAGES = [
+    ("Cheat 1 Day", 25000),
+    ("Cheat 7 Days", 80000),
+    ("Cheat 30 Days", 200000),
+]
+
 TEXTS = {
     'uz': {
         'choose_lang': "Tilni tanlang:",
-        'welcome': "🎮 *PUBG UC SHOP* ga xush kelibsiz!\nBu yerda siz PUBG Mobile uchun UC sotib olishingiz mumkin.",
+        'welcome': "🎮 *PUBG UC SHOP* ga xush kelibsiz!\nBu yerda siz PUBG Mobile uchun UC va chiti-kodlar sotib olishingiz mumkin.",
         'req_contact': "📱 Telefon raqamingizni yuboring:",
         'contact_btn': "📱 Kontaktni yuborish",
         'main_menu': "🏠 Asosiy menyu:",
         'buy_uc': "🛒 UC Sotib olish",
+        'buy_cheat': "🔑 PUBG uchun chiti-kodlar",
         'my_orders': "📦 Buyurtmalarim",
         'profile': "👤 Profilim",
         'support': "📞 Yordam",
         'back': "⬅️ Orqaga",
         'choose_pkg': "📦 UC paketini tanlang:",
+        'choose_cheat_pkg': "🔑 Chiti-kod paketini tanlang:",
         'enter_id': "🎮 PUBG Player ID raqamingizni yuboring:",
         'enter_nick': "👤 PUBG nikneymingizni yuboring:",
         'confirm': "✅ *Buyurtmani tasdiqlang:*\n\n📦 Paket: {pkg}\n💰 Narx: {price} so'm\n🎮 Player ID: {pid}\n👤 Nikneym: {nick}\n\nTo'g'rimi?",
+        'confirm_cheat': "✅ *Chiti-kod buyurtmasini tasdiqlang:*\n\n📦 Paket: {pkg}\n💰 Narx: {price} so'm\n\nTo'g'rimi?",
         'yes': "✅ Tasdiqlash",
         'no': "❌ Bekor qilish",
         'pay_info': "💳 *To'lov ma'lumotlari:*\n\n💳 Karta: `{card}`\n💰 Summa: {price} so'm\n\n📸 To'lov chekini (screenshot) yuboring.",
-        'order_sent': "✅ Chek qabul qilindi! Admin tekshirgandan so'ng UC yuboriladi.",
-        'order_approved': "✅ Buyurtmangiz tasdiqlandi! UC tez orada yuboriladi.",
+        'order_sent': "✅ Chek qabul qilindi! Admin tekshirgandan so'ng mahsulot yuboriladi.",
+        'order_approved': "✅ Buyurtmangiz tasdiqlandi! Buyurtma tez orada yuboriladi.",
         'order_rejected': "❌ Buyurtmangiz rad etildi. Iltimos, qaytadan urinib ko'ring.",
+        'cheat_delivered': "✅ Buyurtmangiz tasdiqlandi!\n🔑 Sizning chiti-kodingiz: `{key}`\n\nUni PUBG Mobile-da faollashtirishingiz mumkin! 🎮",
         'no_orders': "📭 Sizda hali buyurtmalar yo'q.",
         'support_txt': "📞 Yordam: @yuksak_it\n📱 Tel: +998 50 777 51 52",
         'banned': "🚫 Siz bloklangansiz!",
@@ -65,25 +76,29 @@ TEXTS = {
     },
     'ru': {
         'choose_lang': "Выберите язык:",
-        'welcome': "🎮 Добро пожаловать в *PUBG UC SHOP*!\nЗдесь вы можете купить UC для PUBG Mobile.",
+        'welcome': "🎮 Добро пожаловать в *PUBG UC SHOP*!\nЗдесь вы можете купить UC и чит-коды для PUBG Mobile.",
         'req_contact': "📱 Отправьте ваш номер телефона:",
         'contact_btn': "📱 Поделиться контактом",
         'main_menu': "🏠 Главное меню:",
         'buy_uc': "🛒 Купить UC",
+        'buy_cheat': "🔑 Чит-коды для PUBG",
         'my_orders': "📦 Мои заказы",
         'profile': "👤 Профиль",
         'support': "📞 Поддержка",
         'back': "⬅️ Назад",
         'choose_pkg': "📦 Выберите пакет UC:",
+        'choose_cheat_pkg': "🔑 Выберите пакет чит-кодов:",
         'enter_id': "🎮 Отправьте ваш PUBG Player ID:",
         'enter_nick': "👤 Отправьте ваш никнейм в PUBG:",
         'confirm': "✅ *Подтвердите заказ:*\n\n📦 Пакет: {pkg}\n💰 Цена: {price} сум\n🎮 Player ID: {pid}\n👤 Никнейм: {nick}\n\nВсё верно?",
+        'confirm_cheat': "✅ *Подтвердите заказ чит-кода:*\n\n📦 Пакет: {pkg}\n💰 Цена: {price} сум\n\nВсё верно?",
         'yes': "✅ Подтвердить",
         'no': "❌ Отменить",
         'pay_info': "💳 *Данные для оплаты:*\n\n💳 Карта: `{card}`\n💰 Сумма: {price} сум\n\n📸 Отправьте скриншот чека об оплате.",
-        'order_sent': "✅ Чек принят! UC будут отправлены после проверки.",
-        'order_approved': "✅ Ваш заказ подтверждён! UC скоро будут отправлены.",
+        'order_sent': "✅ Чек принят! Товар будет отправлен после проверки.",
+        'order_approved': "✅ Ваш заказ подтверждён! Товар скоро будет отправлен.",
         'order_rejected': "❌ Ваш заказ отклонён. Попробуйте снова.",
+        'cheat_delivered': "✅ Ваш заказ подтвержден!\n🔑 Ваш чит-код: `{key}`\n\nВы можете активировать его в PUBG Mobile! 🎮",
         'no_orders': "📭 У вас пока нет заказов.",
         'support_txt': "📞 Поддержка: @yuksak_it\n📱 Тел: +998 50 777 51 52",
         'banned': "🚫 Вы заблокированы!",
@@ -92,25 +107,29 @@ TEXTS = {
     },
     'en': {
         'choose_lang': "Choose language:",
-        'welcome': "🎮 Welcome to *PUBG UC SHOP*!\nBuy UC for PUBG Mobile here.",
+        'welcome': "🎮 Welcome to *PUBG UC SHOP*!\nBuy UC and Cheat Codes for PUBG Mobile here.",
         'req_contact': "📱 Share your phone number:",
         'contact_btn': "📱 Share Contact",
         'main_menu': "🏠 Main menu:",
         'buy_uc': "🛒 Buy UC",
+        'buy_cheat': "🔑 Cheat Codes for PUBG",
         'my_orders': "📦 My Orders",
         'profile': "👤 Profile",
         'support': "📞 Support",
         'back': "⬅️ Back",
         'choose_pkg': "📦 Choose a UC package:",
+        'choose_cheat_pkg': "🔑 Choose a cheat package:",
         'enter_id': "🎮 Send your PUBG Player ID:",
         'enter_nick': "👤 Send your PUBG nickname:",
         'confirm': "✅ *Confirm your order:*\n\n📦 Package: {pkg}\n💰 Price: {price} UZS\n🎮 Player ID: {pid}\n👤 Nickname: {nick}\n\nIs this correct?",
+        'confirm_cheat': "✅ *Confirm your cheat order:*\n\n📦 Package: {pkg}\n💰 Price: {price} UZS\n\nIs this correct?",
         'yes': "✅ Confirm",
         'no': "❌ Cancel",
         'pay_info': "💳 *Payment details:*\n\n💳 Card: `{card}`\n💰 Amount: {price} UZS\n\n📸 Send a screenshot of your payment receipt.",
-        'order_sent': "✅ Receipt received! UC will be sent after verification.",
-        'order_approved': "✅ Your order is confirmed! UC will be sent soon.",
+        'order_sent': "✅ Receipt received! Product will be sent after verification.",
+        'order_approved': "✅ Your order is confirmed! Product will be sent soon.",
         'order_rejected': "❌ Your order was rejected. Please try again.",
+        'cheat_delivered': "✅ Your order is confirmed!\n🔑 Your cheat code: `{key}`\n\nYou can activate it in PUBG Mobile! 🎮",
         'no_orders': "📭 You have no orders yet.",
         'support_txt': "📞 Support: @yuksak_it\n📱 Tel: +998 50 777 51 52",
         'banned': "🚫 You are banned!",
@@ -136,12 +155,17 @@ def init_db():
             player_id TEXT, nickname TEXT, price INTEGER, status TEXT DEFAULT 'pending',
             receipt_id TEXT, created TEXT
         )""")
+        c.execute("""CREATE TABLE IF NOT EXISTS cheat_keys (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, pkg TEXT, key_val TEXT,
+            used INTEGER DEFAULT 0, user_id TEXT, order_id INTEGER
+        )""")
         c.commit(); c.close()
 
 def get_user(uid):
-    c = sqlite3.connect(DB); c.row_factory = sqlite3.Row
-    r = c.execute("SELECT * FROM users WHERE id=?", (str(uid),)).fetchone(); c.close()
-    return dict(r) if r else None
+    with lock:
+        c = sqlite3.connect(DB); c.row_factory = sqlite3.Row
+        r = c.execute("SELECT * FROM users WHERE id=?", (str(uid),)).fetchone(); c.close()
+        return dict(r) if r else None
 
 def save_user(uid, **kw):
     cols = ", ".join([f"{k}=?" for k in kw]); vals = list(kw.values()) + [str(uid)]
@@ -162,14 +186,16 @@ def add_order(uid, pkg, pid, nick, price, receipt_id):
         c.commit(); c.close()
 
 def get_orders(uid=None, status=None):
-    c = sqlite3.connect(DB); c.row_factory = sqlite3.Row
-    q = "SELECT * FROM orders"; params = []; conds = []
-    if uid: conds.append("user_id=?"); params.append(str(uid))
-    if status: conds.append("status=?"); params.append(status)
-    if conds: q += " WHERE " + " AND ".join(conds)
-    q += " ORDER BY id DESC"
-    rows = c.execute(q, params).fetchall(); c.close()
-    return [dict(r) for r in rows]
+    with lock:
+        c = sqlite3.connect(DB); c.row_factory = sqlite3.Row
+        q = "SELECT * FROM orders"; params = []
+        conds = []
+        if uid: conds.append("user_id=?"); params.append(str(uid))
+        if status: conds.append("status=?"); params.append(status)
+        if conds: q += " WHERE " + " AND ".join(conds)
+        q += " ORDER BY id DESC"
+        rows = c.execute(q, params).fetchall(); c.close()
+        return [dict(r) for r in rows]
 
 def update_order(oid, **kw):
     cols = ", ".join([f"{k}=?" for k in kw]); vals = list(kw.values()) + [oid]
@@ -177,9 +203,37 @@ def update_order(oid, **kw):
         c = sqlite3.connect(DB); c.execute(f"UPDATE orders SET {cols} WHERE id=?", vals); c.commit(); c.close()
 
 def get_all_users():
-    c = sqlite3.connect(DB); c.row_factory = sqlite3.Row
-    rows = c.execute("SELECT * FROM users").fetchall(); c.close()
-    return [dict(r) for r in rows]
+    with lock:
+        c = sqlite3.connect(DB); c.row_factory = sqlite3.Row
+        rows = c.execute("SELECT * FROM users").fetchall(); c.close()
+        return [dict(r) for r in rows]
+
+# ===== CHEAT KEYS HELPERS =====
+def add_cheat_keys(pkg, keys):
+    with lock:
+        c = sqlite3.connect(DB)
+        for k in keys:
+            if k.strip():
+                c.execute("INSERT INTO cheat_keys (pkg, key_val) VALUES (?, ?)", (pkg, k.strip()))
+        c.commit(); c.close()
+
+def get_available_key(pkg):
+    with lock:
+        c = sqlite3.connect(DB); c.row_factory = sqlite3.Row
+        r = c.execute("SELECT * FROM cheat_keys WHERE pkg=? AND used=0 LIMIT 1", (pkg,)).fetchone(); c.close()
+        return dict(r) if r else None
+
+def assign_key(key_id, uid, oid):
+    with lock:
+        c = sqlite3.connect(DB)
+        c.execute("UPDATE cheat_keys SET used=1, user_id=?, order_id=? WHERE id=?", (str(uid), oid, key_id))
+        c.commit(); c.close()
+
+def get_cheat_stats():
+    with lock:
+        c = sqlite3.connect(DB); c.row_factory = sqlite3.Row
+        rows = c.execute("SELECT pkg, COUNT(*) as total, SUM(CASE WHEN used=0 THEN 1 ELSE 0 END) as avail FROM cheat_keys GROUP BY pkg").fetchall(); c.close()
+        return [dict(r) for r in rows]
 
 # ===== TELEGRAM API =====
 def send_msg(cid, text, kb=None):
@@ -204,6 +258,30 @@ def send_photo(cid, photo_id, caption=None, kb=None):
         return True
     except: return False
 
+def edit_msg(cid, message_id, text, is_photo=False, kb=None):
+    method = "editMessageCaption" if is_photo else "editMessageText"
+    p = {'chat_id': cid, 'message_id': message_id}
+    if is_photo:
+        p['caption'] = text
+    else:
+        p['text'] = text
+    p['parse_mode'] = 'Markdown'
+    if kb: p['reply_markup'] = json.dumps(kb)
+    else: p['reply_markup'] = json.dumps({"inline_keyboard": []})
+    try:
+        url = f"https://api.telegram.org/bot{TOKEN}/{method}"
+        req = urllib.request.Request(url, data=urllib.parse.urlencode(p).encode('utf-8'))
+        with urllib.request.urlopen(req) as resp:
+            return True
+    except:
+        p.pop('parse_mode', None)
+        try:
+            url = f"https://api.telegram.org/bot{TOKEN}/{method}"
+            req = urllib.request.Request(url, data=urllib.parse.urlencode(p).encode('utf-8'))
+            with urllib.request.urlopen(req) as resp:
+                return True
+        except: return False
+
 def answer_cb(cb_id):
     try: urllib.request.urlopen(f"https://api.telegram.org/bot{TOKEN}/answerCallbackQuery", data=urllib.parse.urlencode({'callback_query_id': cb_id}).encode('utf-8'))
     except: pass
@@ -211,12 +289,26 @@ def answer_cb(cb_id):
 # ===== KEYBOARDS =====
 def main_kb(lang):
     t = TEXTS.get(lang, TEXTS['uz'])
-    return {"keyboard": [[{"text": t['buy_uc']}], [{"text": t['my_orders']}, {"text": t['profile']}], [{"text": t['support']}]], "resize_keyboard": True}
+    return {
+        "keyboard": [
+            [{"text": t['buy_uc']}, {"text": t['buy_cheat']}],
+            [{"text": t['my_orders']}, {"text": t['profile']}],
+            [{"text": t['support']}]
+        ],
+        "resize_keyboard": True
+    }
 
 def pkg_kb(lang):
     t = TEXTS.get(lang, TEXTS['uz'])
     cur = "сум" if lang == 'ru' else ("UZS" if lang == 'en' else "so'm")
     rows = [[{"text": f"🎮 {p[0]} — {p[2]:,} {cur}"}] for p in PACKAGES]
+    rows.append([{"text": t['back']}])
+    return {"keyboard": rows, "resize_keyboard": True}
+
+def cheat_pkg_kb(lang):
+    t = TEXTS.get(lang, TEXTS['uz'])
+    cur = "сум" if lang == 'ru' else ("UZS" if lang == 'en' else "so'm")
+    rows = [[{"text": f"🔑 {p[0]} — {p[1]:,} {cur}"}] for p in CHEAT_PACKAGES]
     rows.append([{"text": t['back']}])
     return {"keyboard": rows, "resize_keyboard": True}
 
@@ -227,12 +319,12 @@ def handle(upd):
         cq = upd['callback_query']; cid = cq['message']['chat']['id']; uid = str(cq['from']['id']); data = cq['data']
         answer_cb(cq['id'])
         if uid not in OWNER_IDS: return
-        # Format: order_ok_ID or order_no_ID or order_fake_ID
+
         if data.startswith('topup_'):
             oid = int(data.split('_')[-1])
             order = next((o for o in get_orders() if o['id'] == oid), None)
             if not order:
-                send_msg(cid, f"⚠️ Order #{oid} not found for top-up.")
+                send_msg(cid, f"⚠️ Order #{oid} not found.")
                 return
             target_uid = order['user_id']
             uc_pkg = order['pkg']
@@ -261,10 +353,29 @@ def handle(upd):
             target_user = get_user(target_uid)
             lang = target_user.get('lang') or 'uz'
             t_user = TEXTS.get(lang, TEXTS['uz'])
-            success_text = t_user.get('topup_success', "✅ Ваш баланс в PUBG пополнен!")
             
-            send_msg(target_uid, success_text)
-            send_msg(cid, f"✅ Order #{oid} marked as topped up.")
+            is_photo = bool(order.get('receipt_id'))
+            mid = cq['message']['message_id']
+            ou = get_user(target_uid)
+            oname = ou.get('name', '?') if ou else '?'
+            uname = ou.get('username', '') if ou else ''
+            phone = ou.get('phone', '-') if ou else '-'
+            
+            if order['player_id'] == 'CHEAT':
+                admin_msg = f"✅ *ORDER COMPLETED (CHEAT MANUAL) (#{oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n📦 {order['pkg']}\n💰 {order['price']:,} UZS"
+                edit_msg(cid, mid, admin_msg, is_photo=is_photo, kb=None)
+                success_text = t_user.get('topup_success', "✅ Ваш баланс в PUBG пополнен!")
+                send_msg(target_uid, success_text)
+            else:
+                success_text = t_user.get('topup_success', "✅ Ваш баланс в PUBG пополнен!")
+                send_msg(target_uid, success_text)
+                
+                admin_msg = f"✅ *ORDER COMPLETED (UC TOPPED UP) (#{oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n🎮 PID: `{order['player_id']}`\n👤 Nick: `{order['nickname']}`\n📦 {order['pkg']}\n💰 {order['price']:,} UZS"
+                edit_msg(cid, mid, admin_msg, is_photo=is_photo, kb=None)
+                
+                for aid in OWNER_IDS:
+                    if aid != cid:
+                        send_msg(aid, f"✅ Пополнение аккаунта: ID {target_uid}, ник {order['nickname']}, {order['pkg']}.")
             return
 
         if data.startswith('order_ok_'):
@@ -274,17 +385,56 @@ def handle(upd):
                 send_msg(cid, f"⚠️ Order #{oid} not found.")
                 return
             target_uid = order['user_id']
-            update_order(oid, status='approved')
+            is_photo = bool(order.get('receipt_id'))
+            mid = cq['message']['message_id']
+            ou = get_user(target_uid)
+            oname = ou.get('name', '?') if ou else '?'
+            uname = ou.get('username', '') if ou else ''
+            phone = ou.get('phone', '-') if ou else '-'
             
-            target_user = get_user(target_uid)
-            lang = target_user.get('lang') or 'uz'
-            t_user = TEXTS.get(lang, TEXTS['uz'])
-            send_msg(target_uid, t_user['order_approved'])
-            
-            kb = {"inline_keyboard": [[
-                {"text": "🚀 ТОП-АП", "callback_data": f"order_topup_{oid}"}
-            ]]}
-            send_msg(cid, f"✅ Заказ #{oid} подтвержден. Нажмите кнопку ниже после пополнения аккаунта:", kb=kb)
+            if order['player_id'] == 'CHEAT':
+                key_obj = get_available_key(order['pkg'])
+                if key_obj:
+                    assign_key(key_obj['id'], target_uid, oid)
+                    update_order(oid, status='completed')
+                    
+                    target_user = get_user(target_uid)
+                    lang = target_user.get('lang') or 'uz'
+                    t_user = TEXTS.get(lang, TEXTS['uz'])
+                    
+                    msg_user = t_user.get('cheat_delivered', "✅ Sizning chiti-kodingiz: `{key}`").format(key=key_obj['key_val'])
+                    send_msg(target_uid, msg_user)
+                    
+                    admin_msg = f"✅ *ORDER COMPLETED (CHEAT KEY DELIVERED) (#{oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n📦 {order['pkg']}\n💰 {order['price']:,} UZS\n🔑 Key: `{key_obj['key_val']}`"
+                    edit_msg(cid, mid, admin_msg, is_photo=is_photo, kb=None)
+                    
+                    for aid in OWNER_IDS:
+                        if aid != cid:
+                            send_msg(aid, f"🔔 Заказ #{oid} (чит-код) выполнен автоматически. Выдан ключ: `{key_obj['key_val']}`.")
+                else:
+                    update_order(oid, status='approved')
+                    target_user = get_user(target_uid)
+                    lang = target_user.get('lang') or 'uz'
+                    t_user = TEXTS.get(lang, TEXTS['uz'])
+                    send_msg(target_uid, t_user['order_approved'])
+                    
+                    admin_msg = f"⚠️ *ORDER APPROVED - NO KEYS IN STOCK (#{oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n📦 {order['pkg']}\n💰 {order['price']:,} UZS\n\n❌ В базе нет свободных чит-кодов! Пожалуйста, добавьте ключи или вручную отправьте код пользователю."
+                    kb = {"inline_keyboard": [[
+                        {"text": "🚀 ТОП-АП (Выполнено вручную)", "callback_data": f"order_topup_{oid}"}
+                    ]]}
+                    edit_msg(cid, mid, admin_msg, is_photo=is_photo, kb=kb)
+            else:
+                update_order(oid, status='approved')
+                target_user = get_user(target_uid)
+                lang = target_user.get('lang') or 'uz'
+                t_user = TEXTS.get(lang, TEXTS['uz'])
+                send_msg(target_uid, t_user['order_approved'])
+                
+                admin_msg = f"🟢 *ORDER APPROVED (AWAITING TOP-UP) (#{oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n🎮 PID: `{order['player_id']}`\n👤 Nick: `{order['nickname']}`\n📦 {order['pkg']}\n💰 {order['price']:,} UZS"
+                kb = {"inline_keyboard": [[
+                    {"text": "🚀 ТОП-АП", "callback_data": f"order_topup_{oid}"}
+                ]]}
+                edit_msg(cid, mid, admin_msg, is_photo=is_photo, kb=kb)
             return
 
         if data.startswith('order_no_'):
@@ -301,7 +451,19 @@ def handle(upd):
             t_user = TEXTS.get(lang, TEXTS['uz'])
             send_msg(target_uid, t_user['order_rejected'])
             
-            send_msg(cid, f"❌ Заказ #{oid} отклонен.")
+            is_photo = bool(order.get('receipt_id'))
+            mid = cq['message']['message_id']
+            ou = get_user(target_uid)
+            oname = ou.get('name', '?') if ou else '?'
+            uname = ou.get('username', '') if ou else ''
+            phone = ou.get('phone', '-') if ou else '-'
+            
+            if order['player_id'] == 'CHEAT':
+                admin_msg = f"🔴 *ORDER REJECTED (CHEAT) (#{oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n📦 {order['pkg']}\n💰 {order['price']:,} UZS"
+            else:
+                admin_msg = f"🔴 *ORDER REJECTED (UC) (#{oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n🎮 PID: `{order['player_id']}`\n👤 Nick: `{order['nickname']}`\n📦 {order['pkg']}\n💰 {order['price']:,} UZS"
+            
+            edit_msg(cid, mid, admin_msg, is_photo=is_photo, kb=None)
             return
 
         if data.startswith('order_fake_'):
@@ -318,7 +480,19 @@ def handle(upd):
             t_user = TEXTS.get(lang, TEXTS['uz'])
             send_msg(target_uid, t_user['order_rejected'])
             
-            send_msg(cid, f"🚫 Заказ #{oid} отмечен как FAKE.")
+            is_photo = bool(order.get('receipt_id'))
+            mid = cq['message']['message_id']
+            ou = get_user(target_uid)
+            oname = ou.get('name', '?') if ou else '?'
+            uname = ou.get('username', '') if ou else ''
+            phone = ou.get('phone', '-') if ou else '-'
+            
+            if order['player_id'] == 'CHEAT':
+                admin_msg = f"🚫 *ORDER MARKED AS FAKE (CHEAT) (#{oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n📦 {order['pkg']}\n💰 {order['price']:,} UZS"
+            else:
+                admin_msg = f"🚫 *ORDER MARKED AS FAKE (UC) (#{oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n🎮 PID: `{order['player_id']}`\n👤 Nick: {order['nickname']}\n📦 {order['pkg']}\n💰 {order['price']:,} UZS"
+            
+            edit_msg(cid, mid, admin_msg, is_photo=is_photo, kb=None)
             return
 
         if data.startswith('uc_received_'):
@@ -364,7 +538,8 @@ def handle(upd):
         save_user(uid, step='admin')
         kb = {"keyboard": [
             [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
-            [{"text": "📢 Broadcast"}, {"text": "⬅️ Main Menu"}]
+            [{"text": "📢 Broadcast"}, {"text": "🔑 Add Cheat Keys"}],
+            [{"text": "⬅️ Main Menu"}]
         ], "resize_keyboard": True}
         send_msg(cid, "🛠️ *Admin Panel*", kb=kb); return
 
@@ -375,12 +550,16 @@ def handle(upd):
             for o in pending[:10]:
                 ou = get_user(o['user_id'])
                 oname = ou.get('name', '?') if ou else '?'
-                msg = f"📦 *Order #{o['id']}*\n👤 {oname} (`{o['user_id']}`)\n🎮 PID: `{o['player_id']}`\n👤 Nick: `{o['nickname']}`\n📦 {o['pkg']}\n💰 {o['price']:,}\n📅 {o['created']}"
+                
+                if o['player_id'] == 'CHEAT':
+                    msg = f"🔑 *CHEAT ORDER #{o['id']}*\n👤 {oname} (`{o['user_id']}`)\n📦 {o['pkg']}\n💰 {o['price']:,}\n📅 {o['created']}"
+                else:
+                    msg = f"📦 *UC ORDER #{o['id']}*\n👤 {oname} (`{o['user_id']}`)\n🎮 PID: `{o['player_id']}`\n👤 Nick: `{o['nickname']}`\n📦 {o['pkg']}\n💰 {o['price']:,}\n📅 {o['created']}"
+                
                 kb = {"inline_keyboard": [[
                     {"text": "✅ OK", "callback_data": f"order_ok_{o['id']}"},
                     {"text": "❌ NO", "callback_data": f"order_no_{o['id']}"},
-                    {"text": "🚫 FAKE", "callback_data": f"order_fake_{o['id']}"},
-                    {"text": "🚀 ТОП-АП", "callback_data": f"order_topup_{o['id']}"}
+                    {"text": "🚫 FAKE", "callback_data": f"order_fake_{o['id']}"}
                 ]]}
                 if o.get('receipt_id'):
                     send_photo(cid, o['receipt_id'], caption=msg, kb=kb)
@@ -392,23 +571,85 @@ def handle(upd):
             completed = [o for o in all_o if o['status'] == 'completed']
             pending = [o for o in all_o if o['status'] == 'pending']
             revenue = sum(o['price'] for o in completed)
-            send_msg(cid, f"📊 *Statistics:*\n\n👥 Users: {len(all_u)}\n📦 Total orders: {len(all_o)}\n✅ Completed: {len(completed)}\n⏳ Pending: {len(pending)}\n💰 Revenue: {revenue:,} UZS")
+            
+            stats_msg = f"📊 *Statistics:*\n\n👥 Users: {len(all_u)}\n📦 Total orders: {len(all_o)}\n✅ Completed: {len(completed)}\n⏳ Pending: {len(pending)}\n💰 Revenue: {revenue:,} UZS\n\n🔑 *Cheat Keys Inventory:*\n"
+            
+            c_stats = get_cheat_stats()
+            if not c_stats:
+                stats_msg += "📭 No keys added yet."
+            for s in c_stats:
+                stats_msg += f"• {s['pkg']}: {s['avail']} available / {s['total']} total\n"
+                
+            send_msg(cid, stats_msg)
             return
         elif txt == "📢 Broadcast":
             save_user(uid, step='admin_broadcast')
             send_msg(cid, "📢 Send the message to broadcast to all users:", kb={"keyboard": [[{"text": "⬅️ Cancel"}]], "resize_keyboard": True})
             return
+        elif txt == "🔑 Add Cheat Keys":
+            save_user(uid, step='admin_add_cheat_select')
+            rows = [[{"text": p[0]}] for p in CHEAT_PACKAGES]
+            rows.append([{"text": "⬅️ Cancel"}])
+            send_msg(cid, "Select the Cheat Package to add keys to:", kb={"keyboard": rows, "resize_keyboard": True})
+            return
         elif txt == "⬅️ Main Menu":
             save_user(uid, step='main')
             send_msg(cid, t['main_menu'], kb=main_kb(lang))
             return
-# Removed obsolete handling of '❌ Не удалять бота' button
 
+    if is_owner and u.get('step') == 'admin_add_cheat_select':
+        if txt == "⬅️ Cancel":
+            save_user(uid, step='admin')
+            send_msg(cid, "Cancelled.", kb={"keyboard": [
+                [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
+                [{"text": "📢 Broadcast"}, {"text": "🔑 Add Cheat Keys"}],
+                [{"text": "⬅️ Main Menu"}]
+            ], "resize_keyboard": True})
+            return
+        
+        pkg = next((p for p in CHEAT_PACKAGES if p[0] == txt), None)
+        if not pkg:
+            send_msg(cid, "⚠️ Invalid package. Please select from the keyboard.")
+            return
+        
+        save_user(uid, step='admin_add_cheat_keys', temp_pkg=txt)
+        send_msg(cid, f"Send keys for *{txt}* (one key per line):", kb={"keyboard": [[{"text": "⬅️ Cancel"}]], "resize_keyboard": True})
+        return
+
+    if is_owner and u.get('step') == 'admin_add_cheat_keys':
+        if txt == "⬅️ Cancel":
+            save_user(uid, step='admin')
+            send_msg(cid, "Cancelled.", kb={"keyboard": [
+                [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
+                [{"text": "📢 Broadcast"}, {"text": "🔑 Add Cheat Keys"}],
+                [{"text": "⬅️ Main Menu"}]
+            ], "resize_keyboard": True})
+            return
+        
+        keys_list = [k.strip() for k in txt.split("\n") if k.strip()]
+        pkg = u.get('temp_pkg')
+        if not pkg:
+            send_msg(cid, "⚠️ Error: Package not found. Start over.")
+            save_user(uid, step='admin')
+            return
+        
+        add_cheat_keys(pkg, keys_list)
+        save_user(uid, step='admin')
+        send_msg(cid, f"✅ Successfully added {len(keys_list)} keys for *{pkg}*!", kb={"keyboard": [
+            [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
+            [{"text": "📢 Broadcast"}, {"text": "🔑 Add Cheat Keys"}],
+            [{"text": "⬅️ Main Menu"}]
+        ], "resize_keyboard": True})
+        return
 
     if is_owner and u.get('step') == 'admin_broadcast':
         if txt in ["⬅️ Cancel", "/admin"]:
             save_user(uid, step='admin')
-            send_msg(cid, "Cancelled.", kb={"keyboard": [[{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}], [{"text": "📢 Broadcast"}, {"text": "⬅️ Main Menu"}]], "resize_keyboard": True})
+            send_msg(cid, "Cancelled.", kb={"keyboard": [
+                [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
+                [{"text": "📢 Broadcast"}, {"text": "🔑 Add Cheat Keys"}],
+                [{"text": "⬅️ Main Menu"}]
+            ], "resize_keyboard": True})
             return
         all_u = get_all_users(); cnt = 0
         for usr in all_u:
@@ -439,11 +680,18 @@ def handle(upd):
     if 'contact' in m:
         save_user(uid, phone=m['contact']['phone_number'], step='main')
         send_msg(cid, t['main_menu'], kb=main_kb(lang)); return
+    elif u.get('step') == 'contact':
+        send_msg(cid, t['req_contact'], kb={"keyboard": [[{"text": t['contact_btn'], "request_contact": True}]], "resize_keyboard": True})
+        return
 
     # Main menu buttons
     if txt == t['buy_uc']:
         save_user(uid, step='choose_pkg')
         send_msg(cid, t['choose_pkg'], kb=pkg_kb(lang)); return
+
+    if txt == t.get('buy_cheat', '🔑 PUBG uchun chiti-kodlar'):
+        save_user(uid, step='choose_cheat_pkg')
+        send_msg(cid, t.get('choose_cheat_pkg', '🔑 Chiti-kod paketini tanlang:'), kb=cheat_pkg_kb(lang)); return
 
     if txt == t['my_orders']:
         orders = get_orders(uid=uid)
@@ -461,23 +709,54 @@ def handle(upd):
         send_msg(cid, t['support_txt']); return
 
     # Choose package
-    if u.get('step') == 'choose_pkg' and txt:
+    if u.get('step') == 'choose_pkg':
         pkg = None
         for p in PACKAGES:
             if p[0] in txt: pkg = p; break
-        if not pkg: return
+        if not pkg:
+            send_msg(cid, t['choose_pkg'], kb=pkg_kb(lang))
+            return
         save_user(uid, step='enter_pid', temp_pkg=f"{pkg[0]}||{pkg[2]}")
         send_msg(cid, t['enter_id'], kb={"keyboard": [[{"text": t['back']}]], "resize_keyboard": True})
         return
 
+    # Choose cheat package
+    if u.get('step') == 'choose_cheat_pkg':
+        pkg = None
+        for p in CHEAT_PACKAGES:
+            if p[0] in txt: pkg = p; break
+        if not pkg:
+            send_msg(cid, t.get('choose_cheat_pkg', '🔑 Chiti-kod paketini tanlang:'), kb=cheat_pkg_kb(lang))
+            return
+        save_user(uid, step='confirm_cheat', temp_pkg=f"{pkg[0]}||{pkg[1]}", temp_pid="CHEAT", temp_nick="CHEAT")
+        msg = t.get('confirm_cheat', "✅ *Chiti-kod buyurtmasini tasdiqlang:*\n\n📦 Paket: {pkg}\n💰 Narx: {price} so'm\n\nTo'g'rimi?").format(pkg=pkg[0], price=f"{pkg[1]:,}")
+        send_msg(cid, msg, kb={"keyboard": [[{"text": t['yes']}, {"text": t['no']}]], "resize_keyboard": True})
+        return
+
     # Enter Player ID
-    if u.get('step') == 'enter_pid' and txt:
+    if u.get('step') == 'enter_pid':
+        if not txt or not txt.isdigit() or not (5 <= len(txt) <= 15):
+            err_msg = {
+                'uz': "⚠️ Noto'g'ri Player ID. Faqat raqamlardan iborat bo'lishi kerak (5 dan 15 gacha raqam).",
+                'ru': "⚠️ Неверный Player ID. Должен состоять только из цифр (от 5 до 15 цифр).",
+                'en': "⚠️ Invalid Player ID. Must contain only digits (5 to 15 digits)."
+            }.get(lang, "Invalid ID.")
+            send_msg(cid, err_msg, kb={"keyboard": [[{"text": t['back']}]], "resize_keyboard": True})
+            return
         save_user(uid, step='enter_nick', temp_pid=txt)
         send_msg(cid, t['enter_nick'], kb={"keyboard": [[{"text": t['back']}]], "resize_keyboard": True})
         return
 
     # Enter Nickname
-    if u.get('step') == 'enter_nick' and txt:
+    if u.get('step') == 'enter_nick':
+        if not txt or len(txt) > 30:
+            err_msg = {
+                'uz': "⚠️ Noto'g'ri nikneym. Juda uzun yoki bo'sh bo'lmasligi kerak.",
+                'ru': "⚠️ Неверный никнейм. Не должен быть пустым или слишком длинным.",
+                'en': "⚠️ Invalid nickname. Must not be empty or too long."
+            }.get(lang, "Invalid Nickname.")
+            send_msg(cid, err_msg, kb={"keyboard": [[{"text": t['back']}]], "resize_keyboard": True})
+            return
         save_user(uid, step='confirm_order', temp_nick=txt)
         pkg_info = u.get('temp_pkg', '60 UC||15000').split("||")
         pkg_name, price = pkg_info[0], int(pkg_info[1])
@@ -499,31 +778,71 @@ def handle(upd):
             send_msg(cid, t['cancelled'])
             send_msg(cid, t['main_menu'], kb=main_kb(lang))
             return
+        else:
+            pkg_info = u.get('temp_pkg', '60 UC||15000').split("||")
+            pkg_name, price = pkg_info[0], int(pkg_info[1])
+            msg = t['confirm'].format(pkg=pkg_name, price=f"{price:,}", pid=u.get('temp_pid', '?'), nick=u.get('temp_nick', '?'))
+            send_msg(cid, msg, kb={"keyboard": [[{"text": t['yes']}, {"text": t['no']}]], "resize_keyboard": True})
+            return
+
+    # Confirm cheat
+    if u.get('step') == 'confirm_cheat':
+        if txt == t['yes']:
+            pkg_info = u.get('temp_pkg', 'Cheat 1 Day||25000').split("||")
+            price = int(pkg_info[1])
+            save_user(uid, step='awaiting_receipt')
+            send_msg(cid, t['pay_info'].format(card=CARD, price=f"{price:,}"),
+                     kb={"keyboard": [[{"text": t['back']}]], "resize_keyboard": True})
+            return
+        elif txt == t['no']:
+            save_user(uid, step='main')
+            send_msg(cid, t['cancelled'])
+            send_msg(cid, t['main_menu'], kb=main_kb(lang))
+            return
+        else:
+            pkg_info = u.get('temp_pkg', 'Cheat 1 Day||25000').split("||")
+            pkg_name, price = pkg_info[0], int(pkg_info[1])
+            msg = t.get('confirm_cheat', "✅ *Confirm your order:*\n\n📦 Package: {pkg}\n💰 Price: {price} UZS\n\nIs this correct?").format(pkg=pkg_name, price=f"{price:,}")
+            send_msg(cid, msg, kb={"keyboard": [[{"text": t['yes']}, {"text": t['no']}]], "resize_keyboard": True})
+            return
 
     # Receipt photo
-    if 'photo' in m and u.get('step') == 'awaiting_receipt':
-        photo_id = m['photo'][-1]['file_id']
-        pkg_info = u.get('temp_pkg', '60 UC||15000').split("||")
-        pkg_name, price = pkg_info[0], int(pkg_info[1])
-        pid = u.get('temp_pid', '?')
-        nick = u.get('temp_nick', '?')
-        add_order(uid, pkg_name, pid, nick, price, photo_id)
-        save_user(uid, step='main')
-        send_msg(cid, t['order_sent'])
-        send_msg(cid, t['main_menu'], kb=main_kb(lang))
-        # Notify admin
-        orders = get_orders(uid=uid, status='pending')
-        if orders:
-            o = orders[0]
-            admin_msg = f"🔔 *NEW ORDER!*\n\n👤 {u.get('name','?')} (@{u.get('username','?')})\n🆔 `{uid}`\n📱 {u.get('phone','-')}\n🎮 PID: `{pid}`\n👤 Nick: {nick}\n📦 {pkg_name}\n💰 {price:,} UZS"
-            kb = {"inline_keyboard": [[
-                {"text": "✅ OK", "callback_data": f"order_ok_{o['id']}"},
-                {"text": "❌ NO", "callback_data": f"order_no_{o['id']}"},
-                {"text": "🚫 FAKE", "callback_data": f"order_fake_{o['id']}"}
-            ]]}
-            for oid in OWNER_IDS:
-                send_photo(oid, photo_id, caption=admin_msg, kb=kb)
-        return
+    if u.get('step') == 'awaiting_receipt':
+        if 'photo' in m:
+            photo_id = m['photo'][-1]['file_id']
+            pkg_info = u.get('temp_pkg', '60 UC||15000').split("||")
+            pkg_name, price = pkg_info[0], int(pkg_info[1])
+            pid = u.get('temp_pid', '?')
+            nick = u.get('temp_nick', '?')
+            add_order(uid, pkg_name, pid, nick, price, photo_id)
+            save_user(uid, step='main')
+            send_msg(cid, t['order_sent'])
+            send_msg(cid, t['main_menu'], kb=main_kb(lang))
+            
+            orders = get_orders(uid=uid, status='pending')
+            if orders:
+                o = orders[0]
+                if pid == "CHEAT":
+                    admin_msg = f"🔔 *NEW CHEAT ORDER! (#{o['id']})*\n\n👤 {u.get('name','?')} (@{u.get('username','?')})\n🆔 `{uid}`\n📱 {u.get('phone','-')}\n📦 {pkg_name}\n💰 {price:,} UZS"
+                else:
+                    admin_msg = f"🔔 *NEW UC ORDER! (#{o['id']})*\n\n👤 {u.get('name','?')} (@{u.get('username','?')})\n🆔 `{uid}`\n📱 {u.get('phone','-')}\n🎮 PID: `{pid}`\n👤 Nick: {nick}\n📦 {pkg_name}\n💰 {price:,} UZS"
+                
+                kb = {"inline_keyboard": [[
+                    {"text": "✅ OK", "callback_data": f"order_ok_{o['id']}"},
+                    {"text": "❌ NO", "callback_data": f"order_no_{o['id']}"},
+                    {"text": "🚫 FAKE", "callback_data": f"order_fake_{o['id']}"}
+                ]]}
+                for oid in OWNER_IDS:
+                    send_photo(oid, photo_id, caption=admin_msg, kb=kb)
+            return
+        else:
+            err_msg = {
+                'uz': "⚠️ Iltimos, to'lov chekini (screenshot) rasm formatida yuboring.",
+                'ru': "⚠️ Пожалуйста, отправьте скриншот чека в виде фото.",
+                'en': "⚠️ Please send the payment receipt as a photo."
+            }.get(lang, "Please send photo.")
+            send_msg(cid, err_msg, kb={"keyboard": [[{"text": t['back']}]], "resize_keyboard": True})
+            return
 
 def main():
     init_db(); keep_alive(); offset = 0
