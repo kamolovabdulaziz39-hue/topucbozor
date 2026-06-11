@@ -37,9 +37,11 @@ PACKAGES = [
 
 # Cheat Packages: (name, price_uzs)
 CHEAT_PACKAGES = [
-    ("Cheat 1 Day", 25000),
-    ("Cheat 7 Days", 80000),
-    ("Cheat 30 Days", 200000),
+    ("Aim Bot (1 Day)", 10000),
+    ("Aim Bullet Track (7 Days)", 25000),
+    ("Antenna Aim Bullet Track", 43000),
+    ("Antenna Only", 15000),
+    ("Wallhack", 50000),
 ]
 
 TEXTS = {
@@ -801,7 +803,7 @@ def handle(upd):
     # Confirm cheat
     if u.get('step') == 'confirm_cheat':
         if txt == t['yes']:
-            pkg_info = u.get('temp_pkg', 'Cheat 1 Day||25000').split("||")
+            pkg_info = u.get('temp_pkg', 'Aim Bot (1 Day)||10000').split("||")
             price = int(pkg_info[1])
             save_user(uid, step='awaiting_receipt')
             send_msg(cid, t['pay_info'].format(card=CARD, price=f"{price:,}"),
@@ -813,7 +815,7 @@ def handle(upd):
             send_msg(cid, t['main_menu'], kb=main_kb(lang))
             return
         else:
-            pkg_info = u.get('temp_pkg', 'Cheat 1 Day||25000').split("||")
+            pkg_info = u.get('temp_pkg', 'Aim Bot (1 Day)||10000').split("||")
             pkg_name, price = pkg_info[0], int(pkg_info[1])
             msg = t.get('confirm_cheat', "✅ *Confirm your order:*\n\n📦 Package: {pkg}\n💰 Price: {price} UZS\n\nIs this correct?").format(pkg=pkg_name, price=f"{price:,}")
             send_msg(cid, msg, kb={"keyboard": [[{"text": t['yes']}, {"text": t['no']}]], "resize_keyboard": True})
