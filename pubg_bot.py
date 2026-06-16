@@ -924,9 +924,10 @@ def handle(upd):
             send_msg(cid, err_msg, kb={"keyboard": [[{"text": t['back']}]], "resize_keyboard": True})
             return
 
-def main():
-    init_db(); keep_alive(); offset = 0
-    print("🎮 PUBG UC Shop Bot started!")
+def start_bot_polling():
+    init_db()
+    offset = 0
+    print("🎮 PUBG UC Shop Bot polling started in background!")
     with ThreadPoolExecutor(max_workers=20) as ex:
         while True:
             try:
@@ -935,7 +936,18 @@ def main():
                     data = json.loads(resp.read().decode('utf-8'))
                     for upd in data.get('result', []):
                         offset = upd['update_id'] + 1; ex.submit(handle, upd)
-            except: time.sleep(0.5)
+            except Exception as e:
+                time.sleep(0.5)
+
+# Start the polling thread automatically when the module is loaded
+threading.Thread(target=start_bot_polling, daemon=True).start()
+
+def main():
+    print("🎮 PUBG UC Shop Bot started!")
+    try:
+        app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10001)), debug=False, use_reloader=False)
+    except KeyboardInterrupt:
+        pass
 
 def sync_to_github():
     try:
