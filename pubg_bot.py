@@ -159,8 +159,12 @@ def init_db():
         )""")
         c.execute("""CREATE TABLE IF NOT EXISTS cheat_files (
             id INTEGER PRIMARY KEY AUTOINCREMENT, pkg TEXT, file_id TEXT, file_name TEXT,
-            used INTEGER DEFAULT 0, user_id TEXT, order_id INTEGER
+            used INTEGER DEFAULT 0, user_id TEXT, order_id INTEGER, video_id TEXT
         )""")
+        try:
+            c.execute("ALTER TABLE cheat_files ADD COLUMN video_id TEXT")
+        except:
+            pass
         c.commit(); c.close()
 
 def get_user(uid):
@@ -211,10 +215,10 @@ def get_all_users():
         return [dict(r) for r in rows]
 
 # ===== CHEAT FILES HELPERS =====
-def add_cheat_file(pkg, file_id, file_name):
+def add_cheat_file(pkg, file_id, file_name, video_id=None):
     with lock:
         c = sqlite3.connect(DB)
-        c.execute("INSERT INTO cheat_files (pkg, file_id, file_name) VALUES (?, ?, ?)", (pkg, file_id, file_name))
+        c.execute("INSERT INTO cheat_files (pkg, file_id, file_name, video_id) VALUES (?, ?, ?, ?)", (pkg, file_id, file_name, video_id))
         c.commit(); c.close()
 
 def get_available_file(pkg):
@@ -264,6 +268,15 @@ def send_document(cid, file_id, caption=None, kb=None):
     if kb: p['reply_markup'] = json.dumps(kb)
     try:
         urllib.request.urlopen(f"https://api.telegram.org/bot{TOKEN}/sendDocument", data=urllib.parse.urlencode(p).encode('utf-8'))
+        return True
+    except: return False
+
+def send_video(cid, video_id, caption=None, kb=None):
+    p = {'chat_id': cid, 'video': video_id, 'parse_mode': 'Markdown'}
+    if caption: p['caption'] = caption
+    if kb: p['reply_markup'] = json.dumps(kb)
+    try:
+        urllib.request.urlopen(f"https://api.telegram.org/bot{TOKEN}/sendVideo", data=urllib.parse.urlencode(p).encode('utf-8'))
         return True
     except: return False
 
@@ -413,6 +426,8 @@ def handle(upd):
                     
                     msg_user = t_user.get('cheat_delivered', "✅ Buyurtmangiz tasdiqlandi! 📁 Mana faylingiz: *{file_name}*").format(file_name=file_obj['file_name'])
                     send_document(target_uid, file_obj['file_id'], caption=msg_user)
+                    if file_obj.get('video_id'):
+                        send_video(target_uid, file_obj['video_id'], caption="🎥 Video-yo'riqnoma / Видео-инструкция")
                     
                     admin_msg = f"✅ *ORDER COMPLETED (CHEAT FILE DELIVERED) (# {oid})*\n\n👤 {oname} (@{uname})\n🆔 `{target_uid}`\n📱 {phone}\n📦 {order['pkg']}\n💰 {order['price']:,} UZS\n📁 File: *{file_obj['file_name']}*"
                     edit_msg(cid, mid, admin_msg, is_photo=is_photo, kb=None)
@@ -650,26 +665,62 @@ def handle(upd):
                 save_user(uid, step='admin')
                 return
             
-            add_cheat_file(pkg, file_id, file_name)
-            
-            # Auto sync to GitHub
-            sync_status = ""
-            if os.getenv("GITHUB_TOKEN"):
-                sync_res = sync_to_github()
-                sync_status = f"\n\n🔄 GitHub Sync: {sync_res}"
-            else:
-                sync_status = "\n\n⚠️ GitHub Sync: skipped (GITHUB_TOKEN not set in Env)"
-                
+            # Save file info temporarily
+            save_user(uid, step='admin_add_cheat_video', temp_pid=file_id, temp_nick=file_name)
+            send_msg(cid, f"🎥 Endi ushbu cheat uchun video-yo'riqnomani (video fayl) yuboring yoki o'tkazib yuborish uchun /skip bosing:",
+                     kb={"keyboard": [[{"text": "⬅️ Cancel"}]], "resize_keyboard": True})
+            return
+        else:
+            send_msg(cid, "⚠️ Please upload a document file or click Cancel.", kb={"keyboard": [[{"text": "⬅️ Cancel"}]], "resize_keyboard": True})
+            return
+
+    if is_owner and u.get('step') == 'admin_add_cheat_video':
+        if txt == "⬅️ Cancel":
             save_user(uid, step='admin')
-            send_msg(cid, f"✅ Successfully added file *{file_name}* for *{pkg}*!{sync_status}", kb={"keyboard": [
+            send_msg(cid, "Cancelled.", kb={"keyboard": [
                 [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
                 [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
                 [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
             ], "resize_keyboard": True})
             return
+        
+        video_id = None
+        if 'video' in m:
+            video_id = m['video']['file_id']
+        elif txt == '/skip':
+            pass
         else:
-            send_msg(cid, "⚠️ Please upload a document file or click Cancel.", kb={"keyboard": [[{"text": "⬅️ Cancel"}]], "resize_keyboard": True})
+            send_msg(cid, "⚠️ Iltimos, video yuboring yoki o'tkazib yuborish uchun /skip bosing.", kb={"keyboard": [[{"text": "⬅️ Cancel"}]], "resize_keyboard": True})
             return
+        
+        pkg = u.get('temp_pkg')
+        file_id = u.get('temp_pid')
+        file_name = u.get('temp_nick')
+        
+        if not pkg or not file_id:
+            send_msg(cid, "⚠️ Error: Temp data missing. Start over.")
+            save_user(uid, step='admin')
+            return
+            
+        add_cheat_file(pkg, file_id, file_name, video_id)
+        
+        # Auto sync to GitHub
+        sync_status = ""
+        if os.getenv("GITHUB_TOKEN"):
+            sync_res = sync_to_github()
+            sync_status = f"\n\n🔄 GitHub Sync: {sync_res}"
+        else:
+            sync_status = "\n\n⚠️ GitHub Sync: skipped (GITHUB_TOKEN not set in Env)"
+            
+        save_user(uid, step='admin', temp_pid=None, temp_nick=None)
+        
+        video_msg = " video bilan" if video_id else " videosiz"
+        send_msg(cid, f"✅ Successfully added file *{file_name}* for *{pkg}*{video_msg}!{sync_status}", kb={"keyboard": [
+            [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
+            [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
+            [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
+        ], "resize_keyboard": True})
+        return
 
     if is_owner and u.get('step') == 'admin_broadcast':
         if txt in ["⬅️ Cancel", "/admin"]:
