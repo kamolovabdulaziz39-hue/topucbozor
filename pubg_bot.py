@@ -425,7 +425,11 @@ def handle(upd):
                     t_user = TEXTS.get(lang, TEXTS['uz'])
                     
                     msg_user = t_user.get('cheat_delivered', "✅ Buyurtmangiz tasdiqlandi! 📁 Mana faylingiz: *{file_name}*").format(file_name=file_obj['file_name'])
-                    send_document(target_uid, file_obj['file_id'], caption=msg_user)
+                    if file_obj['file_name'].lower().endswith(('.mp4', '.mov', '.avi', '.mkv')):
+                        send_video(target_uid, file_obj['file_id'], caption=msg_user)
+                    else:
+                        send_document(target_uid, file_obj['file_id'], caption=msg_user)
+                    
                     if file_obj.get('video_id'):
                         send_video(target_uid, file_obj['video_id'], caption="🎥 Video-yo'riqnoma / Видео-инструкция")
                     
@@ -563,7 +567,8 @@ def handle(upd):
         kb = {"keyboard": [
             [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
             [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-            [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
+            [{"text": "🎥 Add Cheat Videos"}, {"text": "🔄 Sync GitHub"}],
+            [{"text": "⬅️ Main Menu"}]
         ], "resize_keyboard": True}
         send_msg(cid, "🛠️ *Admin Panel*", kb=kb); return
 
@@ -616,6 +621,12 @@ def handle(upd):
             rows.append([{"text": "⬅️ Cancel"}])
             send_msg(cid, "Select the Cheat Package to add files to:", kb={"keyboard": rows, "resize_keyboard": True})
             return
+        elif txt == "🎥 Add Cheat Videos":
+            save_user(uid, step='admin_add_video_select')
+            rows = [[{"text": p[0]}] for p in CHEAT_PACKAGES]
+            rows.append([{"text": "⬅️ Cancel"}])
+            send_msg(cid, "Select the Cheat Package to add videos to:", kb={"keyboard": rows, "resize_keyboard": True})
+            return
         elif txt == "🔄 Sync GitHub":
             send_msg(cid, "🔄 Syncing database to GitHub...")
             status = sync_to_github()
@@ -632,7 +643,8 @@ def handle(upd):
             send_msg(cid, "Cancelled.", kb={"keyboard": [
                 [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
                 [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-                [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
+                [{"text": "🎥 Add Cheat Videos"}, {"text": "🔄 Sync GitHub"}],
+                [{"text": "⬅️ Main Menu"}]
             ], "resize_keyboard": True})
             return
         
@@ -680,7 +692,8 @@ def handle(upd):
             send_msg(cid, "Cancelled.", kb={"keyboard": [
                 [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
                 [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-                [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
+                [{"text": "🎥 Add Cheat Videos"}, {"text": "🔄 Sync GitHub"}],
+                [{"text": "⬅️ Main Menu"}]
             ], "resize_keyboard": True})
             return
         
@@ -718,9 +731,76 @@ def handle(upd):
         send_msg(cid, f"✅ Successfully added file *{file_name}* for *{pkg}*{video_msg}!{sync_status}", kb={"keyboard": [
             [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
             [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-            [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
+            [{"text": "🎥 Add Cheat Videos"}, {"text": "🔄 Sync GitHub"}],
+            [{"text": "⬅️ Main Menu"}]
         ], "resize_keyboard": True})
         return
+
+    if is_owner and u.get('step') == 'admin_add_video_select':
+        if txt == "⬅️ Cancel":
+            save_user(uid, step='admin')
+            send_msg(cid, "Cancelled.", kb={"keyboard": [
+                [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
+                [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
+                [{"text": "🎥 Add Cheat Videos"}, {"text": "🔄 Sync GitHub"}],
+                [{"text": "⬅️ Main Menu"}]
+            ], "resize_keyboard": True})
+            return
+        
+        pkg = next((p for p in CHEAT_PACKAGES if p[0] == txt), None)
+        if not pkg:
+            send_msg(cid, "⚠️ Invalid package. Please select from the keyboard.")
+            return
+        
+        save_user(uid, step='admin_add_video_upload', temp_pkg=txt)
+        send_msg(cid, f"Please send the cheat video file for *{txt}*:", kb={"keyboard": [[{"text": "⬅️ Cancel"}]], "resize_keyboard": True})
+        return
+
+    if is_owner and u.get('step') == 'admin_add_video_upload':
+        if txt == "⬅️ Cancel":
+            save_user(uid, step='admin')
+            send_msg(cid, "Cancelled.", kb={"keyboard": [
+                [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
+                [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
+                [{"text": "🎥 Add Cheat Videos"}, {"text": "🔄 Sync GitHub"}],
+                [{"text": "⬅️ Main Menu"}]
+            ], "resize_keyboard": True})
+            return
+        
+        if 'video' in m:
+            vid = m['video']
+            file_id = vid['file_id']
+            file_name = vid.get('file_name', 'cheat_video.mp4')
+            if not file_name or not file_name.lower().endswith(('.mp4', '.mov', '.avi', '.mkv')):
+                file_name = "cheat_video.mp4"
+            
+            pkg = u.get('temp_pkg')
+            if not pkg:
+                send_msg(cid, "⚠️ Error: Package not found. Start over.")
+                save_user(uid, step='admin')
+                return
+            
+            add_cheat_file(pkg, file_id, file_name)
+            
+            # Auto sync to GitHub
+            sync_status = ""
+            if os.getenv("GITHUB_TOKEN"):
+                sync_res = sync_to_github()
+                sync_status = f"\n\n🔄 GitHub Sync: {sync_res}"
+            else:
+                sync_status = "\n\n⚠️ GitHub Sync: skipped (GITHUB_TOKEN not set in Env)"
+                
+            save_user(uid, step='admin', temp_pkg=None)
+            send_msg(cid, f"✅ Successfully added video *{file_name}* for *{pkg}!*{sync_status}", kb={"keyboard": [
+                [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
+                [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
+                [{"text": "🎥 Add Cheat Videos"}, {"text": "🔄 Sync GitHub"}],
+                [{"text": "⬅️ Main Menu"}]
+            ], "resize_keyboard": True})
+            return
+        else:
+            send_msg(cid, "⚠️ Please upload a video file or click Cancel.", kb={"keyboard": [[{"text": "⬅️ Cancel"}]], "resize_keyboard": True})
+            return
 
     if is_owner and u.get('step') == 'admin_broadcast':
         if txt in ["⬅️ Cancel", "/admin"]:
@@ -728,7 +808,8 @@ def handle(upd):
             send_msg(cid, "Cancelled.", kb={"keyboard": [
                 [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
                 [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-                [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
+                [{"text": "🎥 Add Cheat Videos"}, {"text": "🔄 Sync GitHub"}],
+                [{"text": "⬅️ Main Menu"}]
             ], "resize_keyboard": True})
             return
         all_u = get_all_users(); cnt = 0
