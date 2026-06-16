@@ -1,4 +1,4 @@
-import sys, urllib.request, urllib.parse, json, time, os, threading, sqlite3
+import sys, urllib.request, urllib.parse, json, time, os, threading, sqlite3, subprocess
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from flask import Flask
@@ -548,7 +548,7 @@ def handle(upd):
         kb = {"keyboard": [
             [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
             [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-            [{"text": "⬅️ Main Menu"}]
+            [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
         ], "resize_keyboard": True}
         send_msg(cid, "🛠️ *Admin Panel*", kb=kb); return
 
@@ -601,6 +601,11 @@ def handle(upd):
             rows.append([{"text": "⬅️ Cancel"}])
             send_msg(cid, "Select the Cheat Package to add files to:", kb={"keyboard": rows, "resize_keyboard": True})
             return
+        elif txt == "🔄 Sync GitHub":
+            send_msg(cid, "🔄 Syncing database to GitHub...")
+            status = sync_to_github()
+            send_msg(cid, f"📊 Sync Status:\n{status}")
+            return
         elif txt == "⬅️ Main Menu":
             save_user(uid, step='main')
             send_msg(cid, t['main_menu'], kb=main_kb(lang))
@@ -612,7 +617,7 @@ def handle(upd):
             send_msg(cid, "Cancelled.", kb={"keyboard": [
                 [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
                 [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-                [{"text": "⬅️ Main Menu"}]
+                [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
             ], "resize_keyboard": True})
             return
         
@@ -631,7 +636,7 @@ def handle(upd):
             send_msg(cid, "Cancelled.", kb={"keyboard": [
                 [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
                 [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-                [{"text": "⬅️ Main Menu"}]
+                [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
             ], "resize_keyboard": True})
             return
         
@@ -646,11 +651,20 @@ def handle(upd):
                 return
             
             add_cheat_file(pkg, file_id, file_name)
+            
+            # Auto sync to GitHub
+            sync_status = ""
+            if os.getenv("GITHUB_TOKEN"):
+                sync_res = sync_to_github()
+                sync_status = f"\n\n🔄 GitHub Sync: {sync_res}"
+            else:
+                sync_status = "\n\n⚠️ GitHub Sync: skipped (GITHUB_TOKEN not set in Env)"
+                
             save_user(uid, step='admin')
-            send_msg(cid, f"✅ Successfully added file *{file_name}* for *{pkg}*!", kb={"keyboard": [
+            send_msg(cid, f"✅ Successfully added file *{file_name}* for *{pkg}*!{sync_status}", kb={"keyboard": [
                 [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
                 [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-                [{"text": "⬅️ Main Menu"}]
+                [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
             ], "resize_keyboard": True})
             return
         else:
@@ -663,7 +677,7 @@ def handle(upd):
             send_msg(cid, "Cancelled.", kb={"keyboard": [
                 [{"text": "🔍 Pending Orders"}, {"text": "📊 Stats"}],
                 [{"text": "📢 Broadcast"}, {"text": "📁 Add Cheat Files"}],
-                [{"text": "⬅️ Main Menu"}]
+                [{"text": "🔄 Sync GitHub"}, {"text": "⬅️ Main Menu"}]
             ], "resize_keyboard": True})
             return
         all_u = get_all_users(); cnt = 0
@@ -871,5 +885,49 @@ def main():
                     for upd in data.get('result', []):
                         offset = upd['update_id'] + 1; ex.submit(handle, upd)
             except: time.sleep(0.5)
+
+def sync_to_github():
+    try:
+        if not os.path.exists(".git"):
+            return "Error: Not a git repository (.git folder missing)."
+        
+        # Get current origin URL
+        res = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, check=True)
+        url = res.stdout.strip()
+        
+        token = os.getenv("GITHUB_TOKEN")
+        if token:
+            if url.startswith("https://"):
+                clean_url = url.replace("https://", "")
+                if "@" in clean_url:
+                    clean_url = clean_url.split("@", 1)[1]
+                push_url = f"https://{token}@{clean_url}"
+            else:
+                push_url = url
+        else:
+            push_url = url
+            
+        # Configure git identity
+        subprocess.run(["git", "config", "user.name", "PUBG Bot Backup"], check=False)
+        subprocess.run(["git", "config", "user.email", "backup@pubg-bot.local"], check=False)
+        
+        # Add database
+        subprocess.run(["git", "add", "pubg.db"], check=True)
+        
+        # Commit
+        subprocess.run(["git", "commit", "-m", "Auto-backup pubg.db from bot"], capture_output=True, text=True, check=False)
+        
+        # Get branch
+        branch_res = subprocess.run(["git", "branch", "--show-current"], capture_output=True, text=True, check=True)
+        branch = branch_res.stdout.strip() or "main"
+        
+        # Push
+        subprocess.run(["git", "push", push_url, branch], capture_output=True, text=True, check=True)
+        return "Success! Database pushed to GitHub."
+    except subprocess.CalledProcessError as e:
+        err = e.stderr.strip() if e.stderr else str(e)
+        return f"Git Error: {err}"
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 if __name__ == "__main__": main()
