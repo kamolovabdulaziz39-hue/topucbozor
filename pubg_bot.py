@@ -927,7 +927,7 @@ def handle(upd):
 def start_bot_polling():
     init_db()
     offset = 0
-    print("🎮 PUBG UC Shop Bot polling started in background!")
+    print("🎮 PUBG UC Shop Bot polling started in background!", flush=True)
     with ThreadPoolExecutor(max_workers=20) as ex:
         while True:
             try:
@@ -937,13 +937,14 @@ def start_bot_polling():
                     for upd in data.get('result', []):
                         offset = upd['update_id'] + 1; ex.submit(handle, upd)
             except Exception as e:
-                time.sleep(0.5)
+                print(f"[ERROR] Polling failed: {e}", flush=True)
+                time.sleep(2)
 
 # Start the polling thread automatically when the module is loaded
 threading.Thread(target=start_bot_polling, daemon=True).start()
 
 def main():
-    print("🎮 PUBG UC Shop Bot started!")
+    print("🎮 PUBG UC Shop Bot started!", flush=True)
     try:
         app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10001)), debug=False, use_reloader=False)
     except KeyboardInterrupt:
