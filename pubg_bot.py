@@ -58,6 +58,7 @@ TEXTS = {
         'main_menu': "🏠 Asosiy menyu:",
         'buy_uc': "🛒 UC Sotib olish",
         'buy_cheat': "📁 PUBG uchun chiti-fayllar",
+        'cheat_inactive': "⚠️ Hozircha bu bo'lim faol emas. Tez orada ushbu bo'lim faol bo'ladi va siz PUBG uchun chiti-fayllarni sotib olishingiz mumkin. 🎮",
         'my_orders': "📦 Buyurtmalarim",
         'profile': "👤 Profilim",
         'support': "📞 Yordam",
@@ -89,6 +90,7 @@ TEXTS = {
         'main_menu': "🏠 Главное меню:",
         'buy_uc': "🛒 Купить UC",
         'buy_cheat': "📁 Чит-файлы для PUBG",
+        'cheat_inactive': "⚠️ Пока что эта кнопка не активна. Скоро эта кнопка будет активна, и вы можете приобрести себе чит-файлы для PUBG. 🎮",
         'my_orders': "📦 Мои заказы",
         'profile': "👤 Профиль",
         'support': "📞 Поддержка",
@@ -120,6 +122,7 @@ TEXTS = {
         'main_menu': "🏠 Main menu:",
         'buy_uc': "🛒 Buy UC",
         'buy_cheat': "📁 Cheat Files for PUBG",
+        'cheat_inactive': "⚠️ This section is currently inactive. Soon this button will be active, and you can purchase cheat files for PUBG. 🎮",
         'my_orders': "📦 My Orders",
         'profile': "👤 Profile",
         'support': "📞 Support",
@@ -856,8 +859,8 @@ def handle(upd):
         send_msg(cid, t['choose_pkg'], kb=pkg_kb(lang)); return
 
     if txt == t.get('buy_cheat', '📁 PUBG uchun chiti-fayllar'):
-        save_user(uid, step='choose_cheat_pkg')
-        send_msg(cid, t.get('choose_cheat_pkg', '📁 Chiti-fayl paketini tanlang:'), kb=cheat_pkg_kb(lang)); return
+        send_msg(cid, t.get('cheat_inactive', "⚠️ Hozircha bu bo'lim faol emas. Tez orada ushbu bo'lim faol bo'ladi va siz PUBG uchun chiti-fayllarni sotib olishingiz mumkin. 🎮"))
+        return
 
     if txt == t['my_orders']:
         orders = get_orders(uid=uid)
