@@ -45,6 +45,7 @@ CHEAT_PACKAGES = [
     ("Bullet Track", 25000),
     ("Antenna Bullet Track", 43000),
     ("Antenna Only", 15000),
+    ("Ipad View", 15000),
     ("Wallhack", 50000),
 ]
 
