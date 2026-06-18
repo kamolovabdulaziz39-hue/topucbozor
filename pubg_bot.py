@@ -1005,6 +1005,14 @@ def handle(upd):
             send_msg(cid, err_msg, kb={"keyboard": [[{"text": t['back']}]], "resize_keyboard": True})
             return
 
+def safe_handle(upd):
+    try:
+        handle(upd)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Exception in handle: {e}", flush=True)
+        traceback.print_exc()
+
 def start_bot_polling():
     init_db()
     offset = 0
@@ -1016,7 +1024,7 @@ def start_bot_polling():
                 with urllib.request.urlopen(url, timeout=20) as resp:
                     data = json.loads(resp.read().decode('utf-8'))
                     for upd in data.get('result', []):
-                        offset = upd['update_id'] + 1; ex.submit(handle, upd)
+                        offset = upd['update_id'] + 1; ex.submit(safe_handle, upd)
             except Exception as e:
                 print(f"[ERROR] Polling failed: {e}", flush=True)
                 time.sleep(2)
