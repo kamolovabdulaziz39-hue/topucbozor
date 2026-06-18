@@ -41,12 +41,12 @@ PACKAGES = [
 
 # Cheat Packages: (name, price_uzs)
 CHEAT_PACKAGES = [
-    ("Aim Bot", 10000),
-    ("Bullet Track", 25000),
-    ("Antenna Bullet Track", 43000),
-    ("Antenna Only", 15000),
-    ("Ipad View", 15000),
-    ("Wallhack", 50000),
+    ("Aim Bot", 15000),
+    ("Bullet Track", 20000),
+    ("Antenna Bullet Track", 30000),
+    ("Antenna Only", 20000),
+    ("Ipad View", 10000),
+    ("Wallhack", 40000),
 ]
 
 TEXTS = {
