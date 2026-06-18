@@ -27,12 +27,16 @@ CARD = "8888 0144 9062 6927"
 
 # UC Packages: (name, uc_amount, price_uzs)
 PACKAGES = [
-    ("60 UC", 60, 15000),
-    ("325 UC", 325, 70000),
-    ("660 UC", 660, 135000),
-    ("1800 UC", 1800, 350000),
-    ("3850 UC", 3850, 700000),
-    ("8100 UC", 8100, 1400000),
+    ("60 UC", 60, 12000),
+    ("325 UC", 325, 60000),
+    ("660 UC", 660, 117000),
+    ("1800 UC", 1800, 300000),
+    ("3850 UC", 3850, 600000),
+    ("8100 UC", 8100, 1200000),
+    ("16200 UC", 16200, 2300000),
+    ("24300 UC", 24300, 3500000),
+    ("32400 UC", 32400, 4950000),
+    ("40500 UC", 40500, 6000000),
 ]
 
 # Cheat Packages: (name, price_uzs)
@@ -919,7 +923,7 @@ def handle(upd):
             send_msg(cid, err_msg, kb={"keyboard": [[{"text": t['back']}]], "resize_keyboard": True})
             return
         save_user(uid, step='confirm_order', temp_nick=txt)
-        pkg_info = u.get('temp_pkg', '60 UC||15000').split("||")
+        pkg_info = u.get('temp_pkg', '60 UC||12000').split("||")
         pkg_name, price = pkg_info[0], int(pkg_info[1])
         msg = t['confirm'].format(pkg=pkg_name, price=f"{price:,}", pid=u.get('temp_pid', '?'), nick=txt)
         send_msg(cid, msg, kb={"keyboard": [[{"text": t['yes']}, {"text": t['no']}]], "resize_keyboard": True})
@@ -928,7 +932,7 @@ def handle(upd):
     # Confirm order
     if u.get('step') == 'confirm_order':
         if txt == t['yes']:
-            pkg_info = u.get('temp_pkg', '60 UC||15000').split("||")
+            pkg_info = u.get('temp_pkg', '60 UC||12000').split("||")
             price = int(pkg_info[1])
             save_user(uid, step='awaiting_receipt')
             send_msg(cid, t['pay_info'].format(card=CARD, price=f"{price:,}"),
@@ -940,7 +944,7 @@ def handle(upd):
             send_msg(cid, t['main_menu'], kb=main_kb(lang))
             return
         else:
-            pkg_info = u.get('temp_pkg', '60 UC||15000').split("||")
+            pkg_info = u.get('temp_pkg', '60 UC||12000').split("||")
             pkg_name, price = pkg_info[0], int(pkg_info[1])
             msg = t['confirm'].format(pkg=pkg_name, price=f"{price:,}", pid=u.get('temp_pid', '?'), nick=u.get('temp_nick', '?'))
             send_msg(cid, msg, kb={"keyboard": [[{"text": t['yes']}, {"text": t['no']}]], "resize_keyboard": True})
@@ -971,7 +975,7 @@ def handle(upd):
     if u.get('step') == 'awaiting_receipt':
         if 'photo' in m:
             photo_id = m['photo'][-1]['file_id']
-            pkg_info = u.get('temp_pkg', '60 UC||15000').split("||")
+            pkg_info = u.get('temp_pkg', '60 UC||12000').split("||")
             pkg_name, price = pkg_info[0], int(pkg_info[1])
             pid = u.get('temp_pid', '?')
             nick = u.get('temp_nick', '?')
