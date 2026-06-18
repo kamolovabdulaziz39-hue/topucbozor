@@ -1038,6 +1038,29 @@ threading.Thread(target=start_bot_polling, daemon=True).start()
 
 def main():
     print("🎮 PUBG UC Shop Bot started!", flush=True)
+    
+    # Self-pinging to keep Render Free Tier awake
+    url = os.getenv("RENDER_EXTERNAL_URL")
+    if url:
+        def self_ping():
+            print(f"[INFO] Self-pinging loop started for {url}", flush=True)
+            # Give the server a moment to start up
+            time.sleep(30)
+            while True:
+                try:
+                    print(f"[INFO] Pinging self: {url}", flush=True)
+                    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 PUBG-Bot-Keep-Alive'})
+                    with urllib.request.urlopen(req, timeout=15) as response:
+                        response.read()
+                except Exception as e:
+                    print(f"[WARNING] Self-ping failed: {e}", flush=True)
+                # Wait 10 minutes (600 seconds) before next ping (Render sleep timeout is 15 mins)
+                time.sleep(600)
+        
+        threading.Thread(target=self_ping, daemon=True).start()
+    else:
+        print("[INFO] RENDER_EXTERNAL_URL not set. Self-pinging disabled.", flush=True)
+
     try:
         app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10001)), debug=False, use_reloader=False)
     except KeyboardInterrupt:
